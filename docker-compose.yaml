@@ -1,7 +1,7 @@
 services:
   backend:
     build:
-      context: backend
+      context: src/backend
     image: chatbot-backend:latest
     volumes:
       - ./sources:/app/sources
@@ -11,7 +11,7 @@ services:
       - "5050:5050"
   frontend:
     build:
-      context: frontend
+      context: src/frontend
     image: chatbot-frontend:latest
     volumes:
       - ./logs:/app/logs
@@ -19,4 +19,20 @@ services:
       - "8501:8501"
     depends_on:
       - backend
-    network_mode: "host"
+
+  model:
+    build:
+      context: src/model
+    image: model-server:latest
+    volumes:
+      - ./logs:/app/logs
+      - ./weights:/app/weights
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
