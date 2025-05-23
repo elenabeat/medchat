@@ -1,2 +1,3 @@
 
 INFERENCE_MODEL = "/app/weights/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
+EMBEDDING_MODEL = "/app/weights/MedCPT-Query-Encoder"

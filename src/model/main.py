@@ -12,6 +12,7 @@ from transformers import (
     pipeline,
     AutoTokenizer,
     AutoModelForCausalLM,
+    AutoModel,
 )
 import toml
 
@@ -40,6 +41,8 @@ async def lifespan(app: FastAPI):
             lifespan.
     """
     # Startup events
+
+    # Load inference model
     tokenizer = AutoTokenizer.from_pretrained(CONFIG["INFERENCE_MODEL"])
     model = AutoModelForCausalLM.from_pretrained(
         CONFIG["INFERENCE_MODEL"],
@@ -54,6 +57,17 @@ async def lifespan(app: FastAPI):
         tokenizer=tokenizer,
         do_sample=False,
         max_new_tokens=1024,
+    )
+
+    # Load embedding model
+    tokenizer = AutoTokenizer.from_pretrained(CONFIG["EMBEDDING_MODEL"])
+    model = AutoModel.from_pretrained(CONFIG["EMBEDDING_MODEL"])
+
+    global EMBEDDING_PIPELINE
+    EMBEDDING_PIPELINE = pipeline(
+        task="feature-extraction",
+        model=model,
+        tokenizer=tokenizer,
     )
 
     yield
@@ -114,14 +128,18 @@ def hello_world() -> str:
 
 @app.post("/generate_text/")
 async def generate_text(request: ChatCompletion) -> ChatCompletion:
+    """
+    Generate text to compelte chat.
 
-    logger.info(request)
-    logger.info(request.__dict__)
+    Args:
+        request (ChatCompletion): previous chat messages.
 
-    inputs = [message.__dict__ for message in request.messages]
+    Returns:
+        ChatCompletion: chat updated with the model's response.
+    """
 
-    outputs = INFERENCE_PIPELINE(text_inputs=inputs)
-
-    logger.info(outputs)
+    outputs = INFERENCE_PIPELINE(
+        text_inputs=[message.__dict__ for message in request.messages]
+    )
 
     return ChatCompletion(messages=outputs[0]["generated_text"])

@@ -105,9 +105,15 @@ def hello_world() -> str:
 @app.post("/chat_completion")
 def chat_completion(request: ChatQuery) -> ChatCompletion:
 
+    # Generate response
+    prompt = f"You are an expert medical assisstant. Briefly answer the user's question to the best of your ability.\nQUERY: {request.query}"
     resp = requests.post(
         url="http://medchat-model:8080/generate_text/",
-        json={"messages": [{"role": "user", "content": request.query}]},
+        json={
+            "messages": [
+                {"role": "user", "content": prompt},
+            ]
+        },
     )
 
     if resp.status_code == 200:
