@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: backend
+    image: chatbot-backend:latest
+    volumes:
+      - ./sources:/app/sources
+      - ./logs:/app/logs
+      - ./database:/app/database
+    ports:
+      - "5050:5050"
+  frontend:
+    build:
+      context: frontend
+    image: chatbot-frontend:latest
+    volumes:
+      - ./logs:/app/logs
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    network_mode: "host"
