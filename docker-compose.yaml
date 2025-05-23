@@ -2,18 +2,20 @@ services:
   backend:
     build:
       context: src/backend
-    image: chatbot-backend:latest
+    container_name: medchat-backend
+    image: medchat-backend:latest
     volumes:
       - ./sources:/app/sources
-      - ./logs:/app/logs
+      - ./logs/backend:/app/logs
     ports:
       - "5050:5050"
   frontend:
     build:
       context: src/frontend
-    image: chatbot-frontend:latest
+    container_name: medchat-frontend
+    image: medchat-frontend:latest
     volumes:
-      - ./logs:/app/logs
+      - ./logs/frontend:/app/logs
     ports:
       - "8501:8501"
     depends_on:
@@ -22,9 +24,10 @@ services:
   model:
     build:
       context: src/model
-    image: model-server:latest
+    container_name: medchat-model
+    image: medchat-model:latest
     volumes:
-      - ./logs:/app/logs
+      - ./logs/model:/app/logs
       - ./weights:/app/weights
     ports:
       - "8080:8080"

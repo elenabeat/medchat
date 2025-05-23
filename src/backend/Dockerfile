@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 5050
 
 # Run the python script
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5050"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5050"]

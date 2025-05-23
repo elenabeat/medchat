@@ -1,3 +1,7 @@
+# Logs
+logs/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -124,7 +128,7 @@ __pypackages__/
 celerybeat-schedule
 celerybeat.pid
 
-# SageMath parsed files
+# SageMath parsed filestoday
 *.sage.py
 
 # Environments

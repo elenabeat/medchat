@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 8501
 
 # Run the python script
-CMD ["streamlit", "run", "src/app.py"]
+CMD ["streamlit", "run", "app.py"]
