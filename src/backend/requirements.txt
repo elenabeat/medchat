@@ -1,0 +1,5 @@
+pytextrank
+spacy
+pandas
+pymupdf4llm
+PyMuPDF
