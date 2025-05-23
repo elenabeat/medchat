@@ -5,12 +5,13 @@ services:
     container_name: medchat-backend
     image: medchat-backend:latest
     volumes:
-      - ./sources:/app/sources
+      - ./corpus:/app/corpus
       - ./logs/backend:/app/logs
     ports:
       - "5050:5050"
     depends_on:
       - model
+
   frontend:
     build:
       context: src/frontend
@@ -40,3 +41,4 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+          memory: 8G

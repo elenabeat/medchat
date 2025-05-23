@@ -7,7 +7,7 @@ import requests
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H-%M')}.log",
+    filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H')}.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     filemode="w",
@@ -17,11 +17,11 @@ logging.basicConfig(
 @dataclass
 class ChatMessage:
     """
-    Dataclass used to store the author and content of a chat message.
-    Author should be either "user" or "ai".
+    Dataclass used to store the role and content of a chat message.
+    role should be either "user" or "assistant".
     """
 
-    author: str
+    role: str
     content: str
 
 
@@ -48,26 +48,24 @@ def chatbot() -> None:
 
     for message in st.session_state["chat_history"]:
         with chat_window:
-            with st.chat_message(message.author):
+            with st.chat_message(message.role):
                 st.write(message.content)
 
     query = st.chat_input()
 
     if query:
-        st.session_state["chat_history"].append(
-            ChatMessage(author="user", content=query)
-        )
+        st.session_state["chat_history"].append(ChatMessage(role="user", content=query))
         with chat_window:
             with st.chat_message("user"):
                 st.write(query)
             with st.spinner("Retrieving Answers..."):
                 response = requests.post(
-                    url="http://localhost:5050/chat_response",
+                    url="http://medchat-backend:5050/chat_completion",
                     json={
                         "query": query,
                         "chat_history": "\n\n".join(
                             [
-                                f"{message.author}: {message.content}"
+                                f"{message.role}: {message.content}"
                                 for message in st.session_state["chat_history"]
                             ]
                         ),
@@ -75,11 +73,11 @@ def chatbot() -> None:
                 )
 
                 if response.status_code == 200:
-                    answer = response.json()["response"]
+                    answer = response.json()["messages"][-1]["content"]
                 else:
                     answer = "Sorry, I could not find an answer to that question. Try rephrasing your question or asking something else."
                 st.session_state["chat_history"].append(
-                    ChatMessage(author="ai", content=answer)
+                    ChatMessage(role="assistant", content=answer)
                 )
                 st.rerun()
 
@@ -111,8 +109,8 @@ def main() -> None:
 
     init_state()
     title()
-    hello_world()
-    # chatbot()
+    # hello_world()
+    chatbot()
 
 
 if __name__ == "__main__":

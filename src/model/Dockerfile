@@ -6,9 +6,11 @@ ENV debian_frontend=noninteractive
 # Set the working directory
 WORKDIR /app
 
-# requirements first for layering
+
+# Install requirements
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+RUN pip install flash-attn --no-build-isolation
 
 # Copy the rest of the files
 COPY . .

@@ -8,14 +8,24 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
+from transformers import (
+    pipeline,
+    AutoTokenizer,
+    AutoModelForCausalLM,
+)
+import toml
+
+from pydanticModels import ChatCompletion
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H-%M')}.log",
+    filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H')}.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     filemode="w",
 )
+
+CONFIG = toml.load("config.toml")
 
 
 @asynccontextmanager
@@ -30,6 +40,22 @@ async def lifespan(app: FastAPI):
             lifespan.
     """
     # Startup events
+    tokenizer = AutoTokenizer.from_pretrained(CONFIG["INFERENCE_MODEL"])
+    model = AutoModelForCausalLM.from_pretrained(
+        CONFIG["INFERENCE_MODEL"],
+        device_map="cuda",
+        attn_implementation="flash_attention_2",
+    )
+
+    global INFERENCE_PIPELINE
+    INFERENCE_PIPELINE = pipeline(
+        task="text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        do_sample=False,
+        max_new_tokens=1024,
+    )
+
     yield
     # Shutdown events
     pass
@@ -84,3 +110,18 @@ def hello_world() -> str:
     """
 
     return "Hello World!"
+
+
+@app.post("/generate_text/")
+async def generate_text(request: ChatCompletion) -> ChatCompletion:
+
+    logger.info(request)
+    logger.info(request.__dict__)
+
+    inputs = [message.__dict__ for message in request.messages]
+
+    outputs = INFERENCE_PIPELINE(text_inputs=inputs)
+
+    logger.info(outputs)
+
+    return ChatCompletion(messages=outputs[0]["generated_text"])
