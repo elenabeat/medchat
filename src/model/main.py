@@ -3,6 +3,7 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 from datetime import datetime
+from typing import List
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -16,7 +17,7 @@ from transformers import (
 )
 import toml
 
-from pydanticModels import ChatCompletion
+from pydanticModels import ChatCompletion, EmbeddingRequest
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -110,7 +111,7 @@ async def custom_form_validation_error(
 
 
 #####################
-# Test Endpoint
+# Endpoints
 #####################
 
 
@@ -143,3 +144,13 @@ async def generate_text(request: ChatCompletion) -> ChatCompletion:
     )
 
     return ChatCompletion(messages=outputs[0]["generated_text"])
+
+
+@app.post("/embed_text/")
+async def embed_text(request: EmbeddingRequest) -> List[List[float]]:
+
+    outputs = EMBEDDING_PIPELINE(
+        inputs=request.content,
+    )
+
+    return outputs

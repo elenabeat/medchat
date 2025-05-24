@@ -105,6 +105,13 @@ def hello_world() -> str:
 @app.post("/chat_completion")
 def chat_completion(request: ChatQuery) -> ChatCompletion:
 
+    # Get query embedding
+    resp = requests.post(
+        url="http://medchat-model:8080/embed_text/",
+        json={"input_type": "query", "content": request.query},
+    )
+    logger.info(f"Embedding generated successfully")
+
     # Generate response
     prompt = f"You are an expert medical assisstant. Briefly answer the user's question to the best of your ability.\nQUERY: {request.query}"
     resp = requests.post(
@@ -115,9 +122,9 @@ def chat_completion(request: ChatQuery) -> ChatCompletion:
             ]
         },
     )
+    logger.info(f"Response generated successfully")
 
     if resp.status_code == 200:
-        logger.info(f"Response from model server: {resp.json()}")
         return resp.json()
     else:
         raise Exception(f"An error occurred connecting to the model server: {resp}")
