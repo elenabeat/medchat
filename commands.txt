@@ -1,0 +1,22 @@
+## Reformat files
+
+libreoffice --headless --convert-to odg corpus/SlamonetalSCIENCE1987.pdf --outdir tmp
+
+chmod u+w tmp/SlamonetalSCIENCE1987.odg
+
+libreoffice --headless --invisible --norestore \
+    "macro:///Standard.Module1.RemoveImagesFromDraw()" \
+    "file:///home/elena/Projects/humana/medchat/tmp/SlamonetalSCIENCE1987.odg"
+
+libreoffice --headless --invisible --norestore \
+  "macro:///Standard.Module1.ResizeSmallTextAndDeleteHugeText()" \
+  "file:///home/elena/Projects/humana/medchat/tmp/SlamonetalSCIENCE1987.odg"
+
+libreoffice --headless --convert-to pdf tmp/SlamonetalSCIENCE1987.odg --outdir tmp 
+
+
+## model downloads
+
+python -m spacy download en_core_web_sm
+
+python -m spacy download en_core_web_lg
