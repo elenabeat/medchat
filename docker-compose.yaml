@@ -9,6 +9,8 @@ services:
       - ./logs/backend:/app/logs
     ports:
       - "5050:5050"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - model
 
@@ -33,7 +35,7 @@ services:
       - ./logs/model:/app/logs
       - ./weights:/app/weights
     ports:
-      - "8080:8080"
+      - "9090:9090"
     deploy:
       resources:
         reservations:
@@ -42,3 +44,23 @@ services:
               count: all
               capabilities: [gpu]
           memory: 8G
+
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: medchat-db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./databases/pgdata:/var/lib/postgresql/data 
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/medchat/
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 8080:8080

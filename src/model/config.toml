@@ -1,3 +1,8 @@
 
-INFERENCE_MODEL = "/app/weights/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
-EMBEDDING_MODEL = "/app/weights/MedCPT-Query-Encoder"
+INFERENCE_MODEL="/app/weights/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
+DO_SAMPLE=false
+MAX_NEW_TOKENS=1024
+
+EMBEDDING_MODEL="/app/weights/MedCPT-Query-Encoder"
+
+DEVICE_MAP="cuda"

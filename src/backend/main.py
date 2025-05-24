@@ -5,7 +5,8 @@ from pathlib import Path
 from datetime import datetime
 
 import toml
-from dotenv import load_dotenv
+
+# from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -13,6 +14,7 @@ from fastapi.encoders import jsonable_encoder
 import requests
 
 from pydanticModels import ChatQuery, ChatResponse, ChatCompletion
+from utils import get_model_config
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -37,7 +39,6 @@ async def lifespan(app: FastAPI):
             lifespan.
     """
     # Startup events
-    load_dotenv()
     yield
     # Shutdown events
     pass
@@ -78,44 +79,28 @@ async def custom_form_validation_error(
 
 
 #####################
-# Test Endpoint
+# Endpoint
 #####################
-
-
-@app.get("/hello_world")
-def hello_world() -> str:
-    """
-    Test endpoint.
-
-    Returns:
-        str: 'Hello World!'
-    """
-    resp = requests.get(
-        url="http://medchat-model:8080/hello_world/",
-    )
-
-    if resp.status_code == 200:
-        logger.info(f"Response from model server: {resp.json()}")
-        return resp.json()
-
-    else:
-        return f"An error occurred connecting to the model server: {resp}"
 
 
 @app.post("/chat_completion")
 def chat_completion(request: ChatQuery) -> ChatCompletion:
 
+    # Get model config
+    get_model_config()
+
     # Get query embedding
     resp = requests.post(
-        url="http://medchat-model:8080/embed_text/",
+        url="http://medchat-model:9090/embed_text/",
         json={"input_type": "query", "content": request.query},
     )
-    logger.info(f"Embedding generated successfully")
+    if resp.status_code == 200:
+        logger.info(f"Embedding generated successfully")
 
     # Generate response
     prompt = f"You are an expert medical assisstant. Briefly answer the user's question to the best of your ability.\nQUERY: {request.query}"
     resp = requests.post(
-        url="http://medchat-model:8080/generate_text/",
+        url="http://medchat-model:9090/generate_text/",
         json={
             "messages": [
                 {"role": "user", "content": prompt},

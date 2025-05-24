@@ -17,7 +17,7 @@ from transformers import (
 )
 import toml
 
-from pydanticModels import ChatCompletion, EmbeddingRequest
+from pydanticModels import ChatCompletion, EmbeddingRequest, ModelDetails
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     tokenizer = AutoTokenizer.from_pretrained(CONFIG["INFERENCE_MODEL"])
     model = AutoModelForCausalLM.from_pretrained(
         CONFIG["INFERENCE_MODEL"],
-        device_map="cuda",
+        device_map=CONFIG["DEVICE_MAP"],
         attn_implementation="flash_attention_2",
     )
 
@@ -56,20 +56,14 @@ async def lifespan(app: FastAPI):
         task="text-generation",
         model=model,
         tokenizer=tokenizer,
-        do_sample=False,
-        max_new_tokens=1024,
+        do_sample=CONFIG["DO_SAMPLE"],
+        max_new_tokens=CONFIG["MAX_NEW_TOKENS"],
     )
 
     # Load embedding model
-    tokenizer = AutoTokenizer.from_pretrained(CONFIG["EMBEDDING_MODEL"])
-    model = AutoModel.from_pretrained(CONFIG["EMBEDDING_MODEL"])
-
-    global EMBEDDING_PIPELINE
-    EMBEDDING_PIPELINE = pipeline(
-        task="feature-extraction",
-        model=model,
-        tokenizer=tokenizer,
-    )
+    global EMBEDDING_TOKENIZER, EMBEDDING_MODEL
+    EMBEDDING_TOKENIZER = AutoTokenizer.from_pretrained(CONFIG["EMBEDDING_MODEL"])
+    EMBEDDING_MODEL = AutoModel.from_pretrained(CONFIG["EMBEDDING_MODEL"])
 
     yield
     # Shutdown events
@@ -115,16 +109,22 @@ async def custom_form_validation_error(
 #####################
 
 
-@app.get("/hello_world/")
-def hello_world() -> str:
+@app.get("/model_details/")
+def model_details() -> ModelDetails:
     """
-    Test endpoint.
+    Get details on the currently running models.
 
     Returns:
-        str: 'Hello World!'
+        ModelDetails: details about the current model configuration.
     """
 
-    return "Hello World!"
+    return ModelDetails(
+        inference_model=CONFIG["INFERENCE_MODEL"],
+        embedding_model=CONFIG["EMBEDDING_MODEL"],
+        device_map=CONFIG["DEVICE_MAP"],
+        max_new_tokens=CONFIG["MAX_NEW_TOKENS"],
+        do_sample=CONFIG["DO_SAMPLE"],
+    )
 
 
 @app.post("/generate_text/")
@@ -149,8 +149,15 @@ async def generate_text(request: ChatCompletion) -> ChatCompletion:
 @app.post("/embed_text/")
 async def embed_text(request: EmbeddingRequest) -> List[List[float]]:
 
-    outputs = EMBEDDING_PIPELINE(
-        inputs=request.content,
+    encoded = EMBEDDING_TOKENIZER(
+        request.content,
+        truncation=True,
+        padding=True,
+        return_tensors="pt",
+        # max_length=64,
     )
+    outputs = EMBEDDING_MODEL(**encoded).last_hidden_state[:, 0, :]
+
+    logger.info(f"Outputs: {outputs}")
 
     return outputs

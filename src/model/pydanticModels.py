@@ -21,4 +21,13 @@ class ChatCompletion:
 @dataclass
 class EmbeddingRequest:
     input_type: Literal["query", "article"]
-    content: str
+    content: str | List[str]
+
+
+@dataclass
+class ModelDetails:
+    inference_model: str
+    embedding_model: str
+    device_map: str
+    max_new_tokens: int
+    do_sample: bool

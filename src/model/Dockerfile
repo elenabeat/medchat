@@ -15,7 +15,7 @@ RUN pip install flash-attn --no-build-isolation
 # Copy the rest of the files
 COPY . .
 
-EXPOSE 8080
+EXPOSE 9090
 
 # Run the python script
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9090"]
