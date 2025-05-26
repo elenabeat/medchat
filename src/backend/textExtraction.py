@@ -1,5 +1,6 @@
 from typing import List, Dict
 import os
+import re
 
 import pymupdf
 
@@ -120,3 +121,6 @@ class Article:
                     self.body += block["text"] + "\n"
                 else:
                     self.irregular_blocks.append(block)
+
+        # Remove line breaks unless they are followed by a capital letter, indicating a new sentence
+        self.body = re.sub(r"\n(?=[^A-Z])", "", self.body.strip())
