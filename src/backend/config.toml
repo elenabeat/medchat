@@ -1,0 +1,10 @@
+
+INFERENCE_MODEL="/app/weights/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
+DO_SAMPLE=false
+MAX_NEW_TOKENS=1024
+
+QUERY_EMBEDDING_MODEL="/app/weights/MedCPT-Query-Encoder"
+ARTICLE_EMBEDDING_MODEL="/app/weights/MedCPT-Article-Encoder"
+CROSS_ENCODER_MODEL="/app/weights/MedCPT-Cross-Encoder"
+
+DEVICE_MAP="cuda"
