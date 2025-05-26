@@ -43,3 +43,9 @@ class Message:
 @dataclass
 class ChatCompletion:
     messages: List[Message]
+
+
+@dataclass
+class EmbeddingRequest:
+    input_type: Literal["query", "article"]
+    texts: str | List[str]
