@@ -17,7 +17,7 @@ The complete pipeline for this application is outlined briefly below and describ
 Example for BioMistral-7b-DARE:
 
 1. Find model on HuggingFace: https://huggingface.co/BioMistral/BioMistral-7B-DARE
-2. Run the following commands (updated with your model's url) from a the weights directory:
+2. Run the following commands (updated with your model's url) from a the models directory:
     ```bash
     git lfs install
     git clone https://huggingface.co/BioMistral/BioMistral-7B-DARE

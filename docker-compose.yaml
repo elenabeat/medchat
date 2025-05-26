@@ -7,6 +7,7 @@ services:
     volumes:
       - ./corpus:/app/corpus
       - ./logs/backend:/app/logs
+      - ./models:/app/models
     ports:
       - "5050:5050"
     environment:
@@ -33,7 +34,7 @@ services:
     image: medchat-model:latest
     volumes:
       - ./logs/model:/app/logs
-      - ./weights:/app/weights
+      - ./models:/app/models
     ports:
       - "9090:9090"
     deploy:
