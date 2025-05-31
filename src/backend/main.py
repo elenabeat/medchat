@@ -4,6 +4,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from datetime import datetime
 
+import toml
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.encoders import jsonable_encoder
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H')}.log",
@@ -11,12 +17,6 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     filemode="w",
 )
-
-import toml
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from fastapi.encoders import jsonable_encoder
 
 from pydanticModels import ChatQuery, ChatResponse
 from sqlFunctions import create_connection

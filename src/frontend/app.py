@@ -70,12 +70,16 @@ def chatbot() -> None:
                             ]
                         ),
                     },
+                    timeout=60,
                 )
 
                 if response.status_code == 200:
                     answer = response.json()["messages"][-1]["content"]
                 else:
-                    answer = "Sorry, I could not find an answer to that question. Try rephrasing your question or asking something else."
+                    answer = (
+                        "Sorry, I could not find an answer to that question."
+                        "Try rephrasing your question or asking something else."
+                    )
                 st.session_state["chat_history"].append(
                     ChatMessage(role="assistant", content=answer)
                 )
@@ -83,10 +87,16 @@ def chatbot() -> None:
 
 
 def title() -> None:
+    """
+    Title of the Streamlit app.
+    """
 
     st.title("MedChat")
     st.write(
-        "Welcome to MedChat! Ask me questions about medical literature and I'll do my best to help you out!"
+        (
+            "Welcome to MedChat!"
+            "Ask me questions about medical literature and I'll do my best to help you out!"
+        )
     )
 
 
@@ -106,6 +116,9 @@ def hello_world() -> None:
 
 
 def main() -> None:
+    """
+    Main function to run the Streamlit app.
+    """
 
     init_state()
     title()

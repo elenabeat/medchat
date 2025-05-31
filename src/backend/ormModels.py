@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import String, ForeignKey, DateTime, Text, Integer, Float, Index
-from sqlalchemy.orm import mapped_column, Mapped, relationship, DeclarativeBase
+from sqlalchemy import String, ForeignKey, DateTime, Text, Integer, Index
+from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase
 from pgvector.sqlalchemy import Vector
 
 
@@ -10,20 +10,6 @@ class Base(DeclarativeBase):
     """
     Base class for SQL orm classes.
     """
-
-
-# class ClinCode(Base):
-#     __tablename__ = "clin_codes"
-
-#     cc_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-#     code: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-#     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-#     embedding: Mapped[Optional[List[float]]] = mapped_column(
-#         Vector(768), nullable=True
-#     )  # Store as JSON string
-
-#     def __repr__(self) -> str:
-#         return f"<ClinCode(id={self.cc_id}, code={self.code}, description={self.description})>"
 
 
 class File(Base):
@@ -100,4 +86,4 @@ class Message(Base):
     # chunk: Mapped["Chunk"] = relationship("Chunk", back_populates="messages")
 
     def __repr__(self) -> str:
-        return f"<Message(id={self.message_id}, text={self.text[:50]}, created_at={self.created_at})>"
+        return f"<Message(id={self.message_id}, text={self.text[:50]}, received_at={self.received_at})>"

@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict
 import os
 import re
 
@@ -6,6 +6,10 @@ import pymupdf
 
 
 class Article:
+    """
+    Class to extract and process text from a PDF article.
+    """
+
     def __init__(
         self,
         path: os.PathLike,
@@ -14,6 +18,7 @@ class Article:
         body_size: int = 10,
         note_size: int = 7.5,
     ):
+
         # Init attributes
         self.path = path
         self.title_size = title_size
@@ -98,7 +103,8 @@ class Article:
 
     def _process_file(self) -> None:
         """
-        Process the PDF file to extract title, authors, and body text. Ignore any text before the first headline
+        Process the PDF file to extract title, authors, and body text.
+        Ignore any text before the first headline
         or after the second headline (if applicable).
         """
         page_blocks = self._parse_doc()
@@ -107,51 +113,31 @@ class Article:
         self.irregular_blocks = []
         for page, blocks in page_blocks.items():
             for block in blocks:
+                # If no title has been found yet, check for the title
                 if not start and block["size"] < self.title_size:
                     continue
-                elif not start and block["size"] >= self.title_size:
+                if not start and block["size"] >= self.title_size:
                     start = True
                     self.start_page = page
                     self.title = block["text"]
                     continue
+
+                # If the title has been found, check next title to break
+                if block["size"] == self.title_size:
+                    self.end_page = page
+                    break
+
+                # If block is too small, skip it
+                if block["size"] <= self.note_size:
+                    continue
+
+                # Add block to appropriate attribute
+                if block["size"] == self.author_size and not self.authors:
+                    self.authors = block["text"]
+                elif block["size"] == self.body_size:
+                    self.body += block["text"] + "\n"
                 else:
-                    if block["size"] <= self.note_size:
-                        continue
-                    elif block["size"] == self.title_size:
-                        self.end_page = page
-                        break
-                    elif block["size"] == self.author_size and not self.authors:
-                        self.authors = block["text"]
-                    elif block["size"] == self.body_size:
-                        self.body += block["text"] + "\n"
-                    else:
-                        self.irregular_blocks.append(block)
+                    self.irregular_blocks.append(block)
 
         # Remove line breaks unless they are followed by a capital letter, indicating a new sentence
         self.body = re.sub(r"\n(?=[^A-Z])", "", self.body.strip())
-
-
-def extract_directory(
-    directory: os.PathLike, existing_files: Optional[List[str]] = []
-) -> List[Article]:
-    """
-    Process all PDF files in a directory and extract article information.
-
-    Args:
-        directory (os.PathLike): The path to the directory containing PDF files.
-        existing_files (List[str]): A list of filenames that have already been processed.
-
-    Returns:
-        List[Article]: A list of Article objects with extracted information.
-            Does not include files that have already been processed.
-    """
-    articles = []
-    for filename in os.listdir(directory):
-        if filename.endswith(".pdf") and filename not in existing_files:
-            file_path = os.path.join(directory, filename)
-            try:
-                article = Article(file_path)
-                articles.append(article)
-            except Exception as e:
-                print(f"Error processing {filename}: {e}")
-    return articles

@@ -17,16 +17,16 @@ logger = logging.getLogger(__name__)
 CONFIG = toml.load("config.toml")
 
 # Load inference model
-tokenizer = AutoTokenizer.from_pretrained(CONFIG["INFERENCE_MODEL"])
-model = AutoModelForCausalLM.from_pretrained(
+inference_tokenizer = AutoTokenizer.from_pretrained(CONFIG["INFERENCE_MODEL"])
+inference_model = AutoModelForCausalLM.from_pretrained(
     CONFIG["INFERENCE_MODEL"],
     device_map=CONFIG["DEVICE_MAP"],
     attn_implementation="flash_attention_2",
 )
 INFERENCE_PIPELINE = pipeline(
     task="text-generation",
-    model=model,
-    tokenizer=tokenizer,
+    model=inference_model,
+    tokenizer=inference_tokenizer,
     do_sample=CONFIG["DO_SAMPLE"],
     max_new_tokens=CONFIG["MAX_NEW_TOKENS"],
 )

@@ -24,6 +24,8 @@ class ChatResponse:
 
     Attributes:
         response (str): the response to the query
+        context (Dict[str, List[Any]]): the context used to generate the response,
+            containing documents and metadata
     """
 
     response: str
@@ -34,6 +36,10 @@ class ChatResponse:
 class Message:
     """
     Dataclass for a chat message.
+
+    Attributes:
+        role (Literal["user", "system", "assistant", "generated_text"]): the role of the message
+        content (str): the content of the message
     """
 
     role: Literal["user", "system", "assistant", "generated_text"]
@@ -42,10 +48,11 @@ class Message:
 
 @dataclass
 class ChatCompletion:
+    """
+    Dataclass for a chat completion request.
+
+    Attributes:
+        messages (List[Message]): a list of messages in the chat
+    """
+
     messages: List[Message]
-
-
-@dataclass
-class EmbeddingRequest:
-    input_type: Literal["query", "article"]
-    texts: str | List[str]

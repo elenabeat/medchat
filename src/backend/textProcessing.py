@@ -8,7 +8,6 @@ from sqlalchemy import Engine
 
 from textExtraction import Article
 from models import embed_texts
-from pydanticModels import EmbeddingRequest
 from ormModels import Chunk, Article as ArticleORM, File
 from sqlFunctions import insert_data, get_files
 
@@ -25,6 +24,17 @@ def generate_chunks(
     article: Article,
     text_splitter: RecursiveCharacterTextSplitter = TEXT_SPLITTER,
 ) -> List[str]:
+    """
+    Generate text chunks from an article's body using a text splitter.
+
+    Args:
+        article (Article): An instance of the Article class containing the article's body.
+        text_splitter (RecursiveCharacterTextSplitter, optional): text splitter to use for chunking the text.
+            Defaults to TEXT_SPLITTER.
+
+    Returns:
+        List[str]: _description_
+    """
 
     return text_splitter.split_text(article.body)
 
@@ -127,13 +137,13 @@ def process_directory(
     if file_data:
         logger.info(f"Identified {len(file_data)} new files to process.")
         files = insert_data(engine, File, file_data)
-        logger.info(f"Inserted new files into the database.")
+        logger.info("Inserted new files into the database.")
 
         # Extract article information from the files and insert into the database
         article_data = process_files(files)
         logger.info(f"Extracted {len(article_data)} articles from files.")
         articles = insert_data(engine, ArticleORM, article_data)
-        logger.info(f"Inserted articles into the database.")
+        logger.info("Inserted articles into the database.")
 
         # Generate chunks from the articles
         chunk_data = process_articles(articles)
@@ -150,6 +160,6 @@ def process_directory(
             chunk["embedding"] = embedding
 
         insert_data(engine, Chunk, chunk_data)
-        logger.info(f"Inserted chunks into the database.")
+        logger.info("Inserted chunks into the database.")
     else:
         logger.info("No new files to process.")
