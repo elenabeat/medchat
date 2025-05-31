@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy import String, ForeignKey, DateTime, Text, Integer, Index
-from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase
+from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase, relationship
 from pgvector.sqlalchemy import Vector
 
 
@@ -39,6 +39,8 @@ class Article(Base):
     authors: Mapped[str] = mapped_column(Text, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
 
+    file = relationship("File", backref="articles")
+
     def __repr__(self) -> str:
         return f"<Article(id={self.article_id}, title={self.title}, authors={self.authors})>"
 
@@ -51,9 +53,9 @@ class Chunk(Base):
         ForeignKey("articles.article_id"), nullable=False
     )
     text: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[Optional[List[float]]] = mapped_column(
-        Vector(768), nullable=True
-    )  # Store as JSON string
+    embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(768), nullable=True)
+
+    article = relationship("Article", backref="chunks")
 
     __table_args__ = (
         Index(

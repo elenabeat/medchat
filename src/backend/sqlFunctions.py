@@ -3,12 +3,13 @@ import os
 import logging
 
 from sqlalchemy import create_engine, Engine, select, insert, text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.engine import URL
 from sqlalchemy_utils import database_exists, create_database, drop_database
+from torch import tensor
 import toml
 
-from ormModels import Base, File
+from ormModels import Base, File, Chunk, Article
 
 CONFIG = toml.load("config.toml")
 logger = logging.getLogger(__name__)
@@ -87,3 +88,23 @@ def get_files(engine: Engine) -> List[File]:
     with Session(engine) as session:
         stmt = select(File)
         return session.scalars(stmt).all()
+
+
+def vector_search(
+    vector: tensor, engine: Engine, top_k: int = 10, max_distance: float = 0.5
+) -> List[Chunk]:
+
+    with Session(engine) as session:
+
+        results = session.scalars(
+            select(Chunk)
+            .options(
+                joinedload(Chunk.article).joinedload(
+                    Article.file
+                )  # Eager load relationships
+            )
+            .order_by(Chunk.embedding.cosine_distance(vector) < max_distance)
+            .limit(top_k)
+        )
+
+        return results.all()

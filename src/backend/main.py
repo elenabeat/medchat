@@ -19,6 +19,7 @@ logging.basicConfig(
 )
 
 from pydanticModels import ChatQuery, ChatResponse
+from rag import rag
 from sqlFunctions import create_connection
 from textProcessing import process_directory
 
@@ -92,39 +93,19 @@ async def custom_form_validation_error(
 #####################
 
 
-# @app.post("/chat_response")
-# def chat_response(chat_query: ChatQuery) -> ChatResponse:
-#     """
-#     Generate a response to a chat query.
+@app.post("/chat_response")
+def chat_response(request: ChatQuery) -> ChatResponse:
+    """
+    Generate a response to a chat query.
 
-#     Args:
-#         chat_query (ChatQuery): the query to respond to
+    Args:
+        request (ChatQuery): the query to respond to
 
-#     Returns:
-#         str: the response to the query
-#     """
-#     search_query = GENERATOR.generate_search_query(
-#         query=chat_query.query, chat_history=chat_query.chat_history
-#     )
-#     logger.info(f"Search Query: {search_query}")
+    Returns:
+        ChatResponse: the model's response and any retrieved
+            context.
+    """
 
-#     context = COLLECTION.query(
-#         query_texts=[search_query],
-#         n_results=CONFIG["TOP_K"],
-#     )
-#     logger.info(f"Context: {context}")
-#     context_str = "\n\n".join(context["documents"][0])
+    resp = rag(request=request, engine=ENGINE)
 
-#     response = GENERATOR.generate_chat_response(
-#         query=chat_query.query,
-#         chat_history=chat_query.chat_history,
-#         context=context_str,
-#     )
-
-#     return ChatResponse(
-#         response=response,
-#         context={
-#             "documents": context["documents"][0],
-#             "metadata": context["metadatas"][0],
-#         },
-#     )
+    return resp

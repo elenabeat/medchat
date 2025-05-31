@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+import json
 from typing import List, Literal
 
 from transformers import (
@@ -11,10 +11,9 @@ from transformers import (
 import torch
 import toml
 
-from pydanticModels import ChatCompletion, Message
-
 logger = logging.getLogger(__name__)
 CONFIG = toml.load("config.toml")
+PROMPTS = json.load(open("prompts.json"))
 
 # Load inference model
 inference_tokenizer = AutoTokenizer.from_pretrained(CONFIG["INFERENCE_MODEL"])
@@ -55,22 +54,6 @@ CROSS_ENCODER_MODEL = AutoModel.from_pretrained(
 )
 
 logger.info("Embedding and cross-encoder models loaded successfully.")
-
-
-def chat_completion(messages: List[Message]) -> ChatCompletion:
-    """
-    Generate text to compelte chat.
-
-    Args:
-        messages (List[Message]): List of previous messages.
-
-    Returns:
-        ChatCompletion: chat updated with the model's response.
-    """
-
-    outputs = INFERENCE_PIPELINE(text_inputs=[message.__dict__ for message in messages])
-
-    return ChatCompletion(messages=outputs[0]["generated_text"])
 
 
 def embed_texts(
@@ -138,6 +121,35 @@ def rerank(query: str, chunks: List[str]) -> torch.tensor:
     return logits
 
 
-def generate_search_query(query: str, chat_history: List[Message]) -> str:
+def generate_search_query(query: str, chat_history: str) -> str:
 
-    pass
+    sys_prompt = PROMPTS["system_prompt"]
+    search_prompt = PROMPTS["search_prompt"].format(
+        chat_history=chat_history, question=query
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": search_prompt},
+    ]
+
+    outputs = INFERENCE_PIPELINE(messages)
+
+    return outputs[0]["generated_text"]
+
+
+def generate_chat_response(query: str, chat_history: str, context: str) -> str:
+
+    sys_prompt = PROMPTS["system_prompt"]
+    chat_prompt = PROMPTS["chat_prompt"].format(
+        chat_history=chat_history, question=query, context=context
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": chat_prompt},
+    ]
+
+    outputs = INFERENCE_PIPELINE(messages)
+
+    return outputs[0]["generated_text"]
