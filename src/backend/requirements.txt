@@ -1,18 +1,25 @@
-pytextrank
-spacy
-pandas
-pymupdf4llm
+# Text Processing
 PyMuPDF
 
+# FastAPI and Web Framework
 pydantic>=2.9.2
 fastapi>=0.115.0
 uvicorn>=0.31.0
 fastapi-utils>=0.6.0
+
+# AI and Language Models
 langchain>=0.3.0
-langchain_community
+autoawq
+
+# Configuration and Utilities
 toml
 python-dotenv
 
+# HTTP and Requests
 requests>=2.32.3
+
+# Database and ORM
 pgvector
 sqlalchemy
+sqlalchemy-utils
+psycopg2-binary

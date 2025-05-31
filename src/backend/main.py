@@ -4,18 +4,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from datetime import datetime
 
-import toml
-
-# from dotenv import load_dotenv
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from fastapi.encoders import jsonable_encoder
-import requests
-
-from pydanticModels import ChatQuery, ChatResponse, ChatCompletion
-from utils import get_model_config
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H')}.log",
@@ -24,7 +12,18 @@ logging.basicConfig(
     filemode="w",
 )
 
-# CONFIG = toml.load("config.toml")
+import toml
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.encoders import jsonable_encoder
+
+from pydanticModels import ChatQuery, ChatResponse
+from sqlFunctions import create_connection
+from textProcessing import process_directory
+
+
+CONFIG = toml.load("config.toml")
 
 
 @asynccontextmanager
@@ -39,9 +38,19 @@ async def lifespan(app: FastAPI):
             lifespan.
     """
     # Startup events
+
+    # Create engine
+    global ENGINE
+    ENGINE = create_connection()
+
+    # Process sources directory
+    process_directory(
+        directory=Path(CONFIG["SOURCES_DIR"]),
+        engine=ENGINE,
+    )
+
     yield
     # Shutdown events
-    pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -79,75 +88,43 @@ async def custom_form_validation_error(
 
 
 #####################
-# Endpoint
+# Endpoints
 #####################
 
 
-@app.post("/chat_completion")
-def chat_completion(request: ChatQuery) -> ChatCompletion:
+# @app.post("/chat_response")
+# def chat_response(chat_query: ChatQuery) -> ChatResponse:
+#     """
+#     Generate a response to a chat query.
 
-    # Get model config
-    get_model_config()
+#     Args:
+#         chat_query (ChatQuery): the query to respond to
 
-    # Get query embedding
-    resp = requests.post(
-        url="http://medchat-model:9090/embed_text/",
-        json={"input_type": "query", "content": request.query},
-    )
-    if resp.status_code == 200:
-        logger.info(f"Embedding generated successfully")
+#     Returns:
+#         str: the response to the query
+#     """
+#     search_query = GENERATOR.generate_search_query(
+#         query=chat_query.query, chat_history=chat_query.chat_history
+#     )
+#     logger.info(f"Search Query: {search_query}")
 
-    # Generate response
-    prompt = f"You are an expert medical assisstant. Briefly answer the user's question to the best of your ability.\nQUERY: {request.query}"
-    resp = requests.post(
-        url="http://medchat-model:9090/generate_text/",
-        json={
-            "messages": [
-                {"role": "user", "content": prompt},
-            ]
-        },
-    )
-    logger.info(f"Response generated successfully")
+#     context = COLLECTION.query(
+#         query_texts=[search_query],
+#         n_results=CONFIG["TOP_K"],
+#     )
+#     logger.info(f"Context: {context}")
+#     context_str = "\n\n".join(context["documents"][0])
 
-    if resp.status_code == 200:
-        return resp.json()
-    else:
-        raise Exception(f"An error occurred connecting to the model server: {resp}")
+#     response = GENERATOR.generate_chat_response(
+#         query=chat_query.query,
+#         chat_history=chat_query.chat_history,
+#         context=context_str,
+#     )
 
-
-@app.post("/chat_response")
-def chat_response(chat_query: ChatQuery) -> ChatResponse:
-    """
-    Generate a response to a chat query.
-
-    Args:
-        chat_query (ChatQuery): the query to respond to
-
-    Returns:
-        str: the response to the query
-    """
-    search_query = GENERATOR.generate_search_query(
-        query=chat_query.query, chat_history=chat_query.chat_history
-    )
-    logger.info(f"Search Query: {search_query}")
-
-    context = COLLECTION.query(
-        query_texts=[search_query],
-        n_results=CONFIG["TOP_K"],
-    )
-    logger.info(f"Context: {context}")
-    context_str = "\n\n".join(context["documents"][0])
-
-    response = GENERATOR.generate_chat_response(
-        query=chat_query.query,
-        chat_history=chat_query.chat_history,
-        context=context_str,
-    )
-
-    return ChatResponse(
-        response=response,
-        context={
-            "documents": context["documents"][0],
-            "metadata": context["metadatas"][0],
-        },
-    )
+#     return ChatResponse(
+#         response=response,
+#         context={
+#             "documents": context["documents"][0],
+#             "metadata": context["metadatas"][0],
+#         },
+#     )
