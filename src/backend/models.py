@@ -128,14 +128,16 @@ def generate_search_query(query: str, chat_history: str) -> str:
         chat_history=chat_history, question=query
     )
 
+    prompt = f"{sys_prompt}\n\n{search_prompt}"
     messages = [
-        {"role": "system", "content": sys_prompt},
-        {"role": "user", "content": search_prompt},
+        {"role": "user", "content": prompt},
     ]
 
     outputs = INFERENCE_PIPELINE(messages)
 
-    return outputs[0]["generated_text"]
+    messages = outputs[0]["generated_text"]
+
+    return messages[-1]["content"]
 
 
 def generate_chat_response(query: str, chat_history: str, context: str) -> str:
@@ -145,11 +147,14 @@ def generate_chat_response(query: str, chat_history: str, context: str) -> str:
         chat_history=chat_history, question=query, context=context
     )
 
+    prompt = f"{sys_prompt}\n\n{chat_prompt}"
+
     messages = [
-        {"role": "system", "content": sys_prompt},
-        {"role": "user", "content": chat_prompt},
+        {"role": "user", "content": prompt},
     ]
 
     outputs = INFERENCE_PIPELINE(messages)
 
-    return outputs[0]["generated_text"]
+    messages = outputs[0]["generated_text"]
+
+    return messages[-1]["content"]

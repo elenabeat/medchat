@@ -60,7 +60,7 @@ def chatbot() -> None:
                 st.write(query)
             with st.spinner("Retrieving Answers..."):
                 response = requests.post(
-                    url="http://medchat-backend:5050/chat_completion",
+                    url="http://medchat-backend:5050/chat_response",
                     json={
                         "query": query,
                         "chat_history": "\n\n".join(

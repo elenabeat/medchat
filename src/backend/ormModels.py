@@ -23,7 +23,7 @@ class File(Base):
     modified_at: Mapped[datetime] = mapped_column(DateTime)
 
     def __repr__(self) -> str:
-        return f"<File(id={self.file_id}, filename={self.filename}, created_at={self.created_at})>"
+        return f"File(id={self.file_id}, filename={self.filename}, created_at={self.created_at})"
 
 
 class Article(Base):
@@ -42,7 +42,9 @@ class Article(Base):
     file = relationship("File", backref="articles")
 
     def __repr__(self) -> str:
-        return f"<Article(id={self.article_id}, title={self.title}, authors={self.authors})>"
+        return (
+            f"Article(id={self.article_id}, title={self.title}, authors={self.authors})"
+        )
 
 
 class Chunk(Base):
@@ -68,7 +70,7 @@ class Chunk(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<Chunk(id={self.chunk_id}, text={self.text[:50]})>"
+        return f"Chunk(id={self.chunk_id}, text={self.text[:50]})"
 
 
 class Message(Base):
@@ -88,4 +90,4 @@ class Message(Base):
     # chunk: Mapped["Chunk"] = relationship("Chunk", back_populates="messages")
 
     def __repr__(self) -> str:
-        return f"<Message(id={self.message_id}, text={self.text[:50]}, received_at={self.received_at})>"
+        return f"Message(id={self.message_id}, text={self.text[:50]}, received_at={self.received_at})"

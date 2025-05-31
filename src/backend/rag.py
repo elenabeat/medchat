@@ -14,10 +14,6 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
 
     received_at = datetime.now()
 
-    chat_history_str = "\n".join(
-        [f"{msg.role}: {msg.content}" for msg in request.chat_history]
-    )
-
     # Generate Search Query
     search_query = generate_search_query(
         query=request.query, chat_history=request.chat_history
@@ -25,9 +21,10 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
     logger.info(f"Search Query: {search_query}")
 
     # Embed Search Query
-    embedding = embed_texts(input_type="query", texts=search_query)
+    embeddings = embed_texts(input_type="query", texts=search_query)
+    logger.info(f"Embeddings: {embeddings}")
 
     # Retrieve Context
-    context = vector_search(vector=embedding, engine=engine)
+    context = vector_search(vector=embeddings[0], engine=engine)
 
     logger.info(f"Context: {context}")

@@ -20,6 +20,7 @@ services:
               count: all
               capabilities: [gpu]
           memory: 8G
+    restart: unless-stopped
 
   frontend:
     build:
