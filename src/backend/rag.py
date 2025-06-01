@@ -72,6 +72,7 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
         "context_retreived_at": context_retreived_at,
         "response_at": respone_at,
         "response": response,
+        "is_good": None,
     }
     message = insert_data(
         engine=engine,
@@ -95,6 +96,7 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
 
     return ChatResponse(
         response=response,
+        message_id=message.message_id,
         context=[
             {
                 "text": chunk.text,

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import String, ForeignKey, DateTime, Text, Integer, Index
+from sqlalchemy import String, ForeignKey, DateTime, Text, Integer, Index, Boolean
 from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase, relationship
 from pgvector.sqlalchemy import Vector
 
@@ -72,9 +72,6 @@ class Chunk(Base):
 
     # Relationships
     article: Mapped[Article] = relationship("Article", backref="chunks")
-    # messages: Mapped[List["Message"]] = relationship(
-    #     "Message", secondary="message_context", back_populates="message_chunks"
-    # )
 
     __table_args__ = (
         Index(
@@ -131,6 +128,7 @@ class Message(Base):
     )
     response_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     response: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    is_good: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
 
     # Relationships
     chunks: Mapped[List[Chunk]] = relationship("Chunk", secondary="message_context")

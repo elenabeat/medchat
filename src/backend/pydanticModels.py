@@ -50,14 +50,14 @@ class ChatResponse:
 
     Attributes:
         response (str): the response to the query
+        message_id (int): the ID of the message in the database
         context (Dict[str, List[Any]]): the context used to generate the response,
             containing documents and metadata
     """
 
     response: str
-    context: List[
-        Dict[str, Any]
-    ]  # List of dictionaries containing context documents and metadata
+    message_id: int
+    context: List[Dict[str, Any]]
 
 
 @dataclass
@@ -75,12 +75,14 @@ class Message:
 
 
 @dataclass
-class ChatCompletion:
+class FeedbackRequest:
     """
-    Dataclass for a chat completion request.
+    Dataclass for submitting feedback on a chat message.
 
     Attributes:
-        messages (List[Message]): a list of messages in the chat
+        message_id (int): the ID of the message to provide feedback on
+        is_good (bool): whether the response was good or not
     """
 
-    messages: List[Message]
+    message_id: int
+    is_good: bool

@@ -4,6 +4,7 @@ from pydantic.dataclasses import dataclass
 
 import streamlit as st
 import requests
+from streamlit_feedback import streamlit_feedback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -63,6 +64,24 @@ def parse_context(context: list[dict]) -> str:
     return sources
 
 
+def _submit_feedback(user_response: bool, emoji=None):
+
+    is_good = True if user_response["score"] == "👍" else False
+    resp = requests.post(
+        url="http://medchat-backend:5050/submit_feedback",
+        json={
+            "message_id": st.session_state["message_id"],
+            "is_good": is_good,
+        },
+    )
+    if resp.status_code != 200:
+        logger.error("Failed to submit feedback.")
+        st.error("Failed to submit feedback. Check logs.")
+        return
+    else:
+        st.toast("Feedback submitted successfully!", icon=emoji)
+
+
 def chatbot() -> None:
     """
     Chatbot interface.
@@ -85,6 +104,11 @@ def chatbot() -> None:
                     st.write("### Sources")
                     for source in sources:
                         st.markdown(source)
+                streamlit_feedback(
+                    feedback_type="thumbs",
+                    review_on_positive=False,
+                    on_submit=_submit_feedback,
+                )
 
     query = st.chat_input()
 
@@ -112,6 +136,7 @@ def chatbot() -> None:
                 if response.status_code == 200:
                     answer = response.json()["response"]
                     st.session_state["context"] = response.json().get("context", [])
+                    st.session_state["message_id"] = response.json().get("message_id")
 
                 else:
                     answer = (
