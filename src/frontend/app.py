@@ -38,11 +38,22 @@ def init_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = value
 
+    if "session_id" not in st.session_state:
+        resp = requests.post(
+            url="http://medchat-backend:5050/start_session",
+            json={"user_id": 1},  # Hard code to 1 for testing purposes
+        )
+
+        if resp.status_code == 200:
+            st.session_state["session_id"] = resp.json()
+        else:
+            st.error("Failed to create a session. Check logs.")
+
 
 def parse_context(context: list[dict]) -> str:
 
     sources = [
-        f"['{chunk['title']}'](http://localhost:9090/{chunk['filename']}#page={chunk['start_page'] + 1}) by {chunk['authors']} "
+        f"['{chunk['title']}'](http://localhost:9090/{chunk['filename']}#page={chunk['start_page'] + 1})"
         for chunk in context
         if chunk.get("title") and chunk.get("authors")
     ]
@@ -59,17 +70,21 @@ def chatbot() -> None:
 
     chat_window = st.container(height=500)
 
-    for message in st.session_state["chat_history"]:
-        with chat_window:
-            with st.chat_message(message.role):
-                st.write(message.content)
+    if st.session_state["chat_history"]:
+        for message in st.session_state["chat_history"][:-1]:
+            with chat_window:
+                with st.chat_message(message.role):
+                    st.write(message.content)
 
-    if st.session_state["context"]:
-        sources = parse_context(st.session_state["context"])
+        # Add sources to last message
         with chat_window:
-            st.write("### Sources")
-            for source in sources:
-                st.markdown(source)
+            with st.chat_message(st.session_state["chat_history"][-1].role):
+                st.write(st.session_state["chat_history"][-1].content)
+                if st.session_state["context"]:
+                    sources = parse_context(st.session_state["context"])
+                    st.write("### Sources")
+                    for source in sources:
+                        st.markdown(source)
 
     query = st.chat_input()
 
@@ -89,8 +104,9 @@ def chatbot() -> None:
                                 for message in st.session_state["chat_history"]
                             ]
                         ),
+                        "session_id": st.session_state["session_id"],
                     },
-                    timeout=300,
+                    timeout=120,
                 )
 
                 if response.status_code == 200:

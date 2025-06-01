@@ -3,14 +3,15 @@ from datetime import datetime
 
 from sqlalchemy import Engine
 
-from models import (
+from languageModels import (
     generate_chat_response,
     generate_search_query,
     embed_texts,
     rerank_chunks,
 )
+from ormModels import Message, MessageContext
 from pydanticModels import ChatQuery, ChatResponse
-from sqlFunctions import vector_search
+from sqlFunctions import vector_search, insert_data
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
     ]
     context = [context[i] for i in top_indices]
     scores = [rerank_results[i].item() for i in top_indices]
+    context_retreived_at = datetime.now()
     logger.info(f"Context Scores: {scores}")
 
     # Generate Chat Response
@@ -60,6 +62,36 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
 
     logger.info(f"Response: {response}")
     logger.info(f"Response Time: {respone_at - received_at}")
+
+    # Log message in the database
+    message_data = {
+        "session_id": request.session_id,
+        "query": request.query,
+        "received_at": received_at,
+        "search_query": search_query,
+        "context_retreived_at": context_retreived_at,
+        "response_at": respone_at,
+        "response": response,
+    }
+    message = insert_data(
+        engine=engine,
+        table=Message,
+        data=message_data,
+    )[0]
+
+    # Log context chunks in the database
+    context_data = [
+        {
+            "chunk_id": chunk.chunk_id,
+            "message_id": message.message_id,
+        }
+        for chunk in context
+    ]
+    insert_data(
+        engine=engine,
+        table=MessageContext,
+        data=context_data,
+    )
 
     return ChatResponse(
         response=response,

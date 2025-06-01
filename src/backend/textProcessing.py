@@ -7,7 +7,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sqlalchemy import Engine
 
 from textExtraction import Article
-from models import embed_texts
+from languageModels import embed_texts
 from ormModels import Chunk, Article as ArticleORM, File
 from sqlFunctions import insert_data, get_files
 

@@ -18,9 +18,10 @@ logging.basicConfig(
     filemode="w",
 )
 
-from pydanticModels import ChatQuery, ChatResponse
+from ormModels import Session
+from pydanticModels import ChatQuery, ChatResponse, SessionRequest
 from rag import rag
-from sqlFunctions import create_connection
+from sqlFunctions import create_connection, insert_data
 from textProcessing import process_directory
 
 
@@ -91,6 +92,24 @@ async def custom_form_validation_error(
 #####################
 # Endpoints
 #####################
+
+
+@app.post("/start_session")
+def start_session(request: SessionRequest) -> int:
+
+    session_data = {
+        "user_id": request.user_id,
+        "created_at": datetime.now(),
+    }
+
+    session = insert_data(
+        engine=ENGINE,
+        table=Session,
+        data=session_data,
+    )[0]
+    logger.info(f"Session started: {session}")
+
+    return session.session_id
 
 
 @app.post("/chat_response")

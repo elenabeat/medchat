@@ -3,7 +3,6 @@ import json
 from typing import List, Literal
 
 from transformers import (
-    pipeline,
     AutoTokenizer,
     AutoModelForCausalLM,
     AutoModel,
@@ -23,14 +22,6 @@ INFERENCE_MODEL = AutoModelForCausalLM.from_pretrained(
     device_map=CONFIG["DEVICE_MAP"],
     attn_implementation="flash_attention_2",
 )
-# INFERENCE_PIPELINE = pipeline(
-#     task="text-generation",
-#     model=inference_model,
-#     tokenizer=inference_tokenizer,
-#     do_sample=CONFIG["DO_SAMPLE"],
-#     temperature=CONFIG["TEMPERATURE"],
-#     max_new_tokens=CONFIG["MAX_NEW_TOKENS"],
-# )
 logger.info("Inference model loaded successfully.")
 
 # Load query embedding model
@@ -200,18 +191,6 @@ def generate_search_query(query: str, chat_history: str) -> str:
         prompt,
         enable_thinking=False,
     )
-    # messages = [
-    #     {"role": "user", "content": prompt},
-    # ]
-
-    # outputs = INFERENCE_PIPELINE(messages)
-
-    # messages = outputs[0]["generated_text"]
-
-    # del outputs
-    # torch.cuda.empty_cache()
-
-    # return messages[-1]["content"]
 
 
 def generate_chat_response(query: str, context: str) -> str:
@@ -222,18 +201,3 @@ def generate_chat_response(query: str, context: str) -> str:
     prompt = f"{sys_prompt}\n\n{chat_prompt}"
 
     return generate_text(prompt, enable_thinking=True)
-
-    # messages = [
-    #     {"role": "user", "content": prompt},
-    # ]
-
-    # logger.info(f"Input messages: {messages}")
-
-    # outputs = INFERENCE_PIPELINE(messages)
-
-    # messages = outputs[0]["generated_text"]
-
-    # del outputs
-    # torch.cuda.empty_cache()
-
-    # return messages[-1]["content"]
