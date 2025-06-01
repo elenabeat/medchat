@@ -29,7 +29,9 @@ class ChatResponse:
     """
 
     response: str
-    context: Dict[str, List[Any]]
+    context: List[
+        Dict[str, Any]
+    ]  # List of dictionaries containing context documents and metadata
 
 
 @dataclass

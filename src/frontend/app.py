@@ -31,12 +31,25 @@ def init_state() -> None:
     """
     init_dict = {
         "chat_history": [],
-        "response": "",
+        "context": [],
     }
 
     for key, value in init_dict.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+
+def parse_context(context: list[dict]) -> str:
+
+    sources = [
+        f"['{chunk['title']}'](http://localhost:9090/{chunk['filename']}#page={chunk['start_page'] + 1}) by {chunk['authors']} "
+        for chunk in context
+        if chunk.get("title") and chunk.get("authors")
+    ]
+
+    sources = set(sources)
+
+    return sources
 
 
 def chatbot() -> None:
@@ -50,6 +63,13 @@ def chatbot() -> None:
         with chat_window:
             with st.chat_message(message.role):
                 st.write(message.content)
+
+    if st.session_state["context"]:
+        sources = parse_context(st.session_state["context"])
+        with chat_window:
+            st.write("### Sources")
+            for source in sources:
+                st.markdown(source)
 
     query = st.chat_input()
 
@@ -70,11 +90,13 @@ def chatbot() -> None:
                             ]
                         ),
                     },
-                    timeout=60,
+                    timeout=300,
                 )
 
                 if response.status_code == 200:
-                    answer = response.json()["messages"][-1]["content"]
+                    answer = response.json()["response"]
+                    st.session_state["context"] = response.json().get("context", [])
+
                 else:
                     answer = (
                         "Sorry, I could not find an answer to that question."
@@ -98,21 +120,6 @@ def title() -> None:
             "Ask me questions about medical literature and I'll do my best to help you out!"
         )
     )
-
-
-def hello_world() -> None:
-
-    button = st.button("Hello World")
-
-    if button:
-        response = requests.get(
-            url="http://medchat-backend:5050/hello_world",
-        )
-
-        if response.status_code == 200:
-            st.write(response.json())
-        else:
-            st.error(response)
 
 
 def main() -> None:

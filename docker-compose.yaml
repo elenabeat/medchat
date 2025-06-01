@@ -8,6 +8,7 @@ services:
       - ./sources:/app/sources
       - ./logs/backend:/app/logs
       - ./models:/app/models
+      - ./src/backend:/app
     ports:
       - "5050:5050"
     environment:
@@ -29,6 +30,7 @@ services:
     image: medchat-frontend:latest
     volumes:
       - ./logs/frontend:/app/logs
+      - ./src/frontend:/app
     ports:
       - "8501:8501"
     depends_on:

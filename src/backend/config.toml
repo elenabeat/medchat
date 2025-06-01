@@ -1,8 +1,10 @@
 # LLM
 
-INFERENCE_MODEL="/app/models/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
-DO_SAMPLE=false
+# INFERENCE_MODEL="/app/models/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
+INFERENCE_MODEL="/app/models/Qwen3-4B-AWQ"
+DO_SAMPLE=true
 MAX_NEW_TOKENS=1024
+TEMPERATURE=0.01
 
 QUERY_EMBEDDING_MODEL="/app/models/MedCPT-Query-Encoder"
 ARTICLE_EMBEDDING_MODEL="/app/models/MedCPT-Article-Encoder"

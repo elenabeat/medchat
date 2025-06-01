@@ -13,7 +13,7 @@ from fastapi.encoders import jsonable_encoder
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H')}.log",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     filemode="w",
 )
