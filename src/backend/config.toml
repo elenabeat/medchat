@@ -1,10 +1,26 @@
+# LLM
 
-INFERENCE_MODEL="/app/models/BioMistral-7B-DARE-AWQ-QGS128-W4-GEMM"
-DO_SAMPLE=false
+INFERENCE_MODEL="/app/models/Qwen3-4B-AWQ"
+DO_SAMPLE=true
 MAX_NEW_TOKENS=1024
+TEMPERATURE=0.01
 
 QUERY_EMBEDDING_MODEL="/app/models/MedCPT-Query-Encoder"
 ARTICLE_EMBEDDING_MODEL="/app/models/MedCPT-Article-Encoder"
 CROSS_ENCODER_MODEL="/app/models/MedCPT-Cross-Encoder"
 
 DEVICE_MAP="cuda"
+
+# SQL DB
+
+DRIVER="postgresql+psycopg2"
+USER="postgres"
+HOST="db"
+PORT="5432"
+DATABASE="medchat"
+
+FORCE_REBUILD=false
+
+# Directories
+
+SOURCES_DIR="/app/sources"

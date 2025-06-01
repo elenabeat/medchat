@@ -5,26 +5,30 @@ from pathlib import Path
 from datetime import datetime
 
 import toml
-
-# from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
-import requests
-
-from pydanticModels import ChatQuery, ChatResponse, ChatCompletion
-from utils import get_model_config
+from sqlalchemy import select
+from sqlalchemy.orm import Session as SQLAlchemySession
+from sqlalchemy.exc import NoResultFound
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     filename=f"logs/{datetime.now().strftime('%d-%m-%Y_%H')}.log",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     filemode="w",
 )
 
-# CONFIG = toml.load("config.toml")
+from ormModels import Session, Message
+from pydanticModels import ChatQuery, ChatResponse, SessionRequest, FeedbackRequest
+from rag import rag
+from sqlFunctions import create_connection, insert_data
+from textProcessing import process_directory
+
+
+CONFIG = toml.load("config.toml")
 
 
 @asynccontextmanager
@@ -39,9 +43,19 @@ async def lifespan(app: FastAPI):
             lifespan.
     """
     # Startup events
+
+    # Create engine
+    global ENGINE
+    ENGINE = create_connection()
+
+    # Process sources directory
+    process_directory(
+        directory=Path(CONFIG["SOURCES_DIR"]),
+        engine=ENGINE,
+    )
+
     yield
     # Shutdown events
-    pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -79,75 +93,68 @@ async def custom_form_validation_error(
 
 
 #####################
-# Endpoint
+# Endpoints
 #####################
 
 
-@app.post("/chat_completion")
-def chat_completion(request: ChatQuery) -> ChatCompletion:
+@app.post("/start_session")
+def start_session(request: SessionRequest) -> int:
 
-    # Get model config
-    get_model_config()
+    session_data = {
+        "user_id": request.user_id,
+        "created_at": datetime.now(),
+    }
 
-    # Get query embedding
-    resp = requests.post(
-        url="http://medchat-model:9090/embed_text/",
-        json={"input_type": "query", "content": request.query},
-    )
-    if resp.status_code == 200:
-        logger.info(f"Embedding generated successfully")
+    session = insert_data(
+        engine=ENGINE,
+        table=Session,
+        data=session_data,
+    )[0]
+    logger.info(f"Session started: {session}")
 
-    # Generate response
-    prompt = f"You are an expert medical assisstant. Briefly answer the user's question to the best of your ability.\nQUERY: {request.query}"
-    resp = requests.post(
-        url="http://medchat-model:9090/generate_text/",
-        json={
-            "messages": [
-                {"role": "user", "content": prompt},
-            ]
-        },
-    )
-    logger.info(f"Response generated successfully")
-
-    if resp.status_code == 200:
-        return resp.json()
-    else:
-        raise Exception(f"An error occurred connecting to the model server: {resp}")
+    return session.session_id
 
 
 @app.post("/chat_response")
-def chat_response(chat_query: ChatQuery) -> ChatResponse:
+def chat_response(request: ChatQuery) -> ChatResponse:
     """
     Generate a response to a chat query.
 
     Args:
-        chat_query (ChatQuery): the query to respond to
+        request (ChatQuery): the query to respond to
 
     Returns:
-        str: the response to the query
+        ChatResponse: the model's response and any retrieved
+            context.
     """
-    search_query = GENERATOR.generate_search_query(
-        query=chat_query.query, chat_history=chat_query.chat_history
-    )
-    logger.info(f"Search Query: {search_query}")
 
-    context = COLLECTION.query(
-        query_texts=[search_query],
-        n_results=CONFIG["TOP_K"],
-    )
-    logger.info(f"Context: {context}")
-    context_str = "\n\n".join(context["documents"][0])
+    resp = rag(request=request, engine=ENGINE)
 
-    response = GENERATOR.generate_chat_response(
-        query=chat_query.query,
-        chat_history=chat_query.chat_history,
-        context=context_str,
-    )
+    return resp
 
-    return ChatResponse(
-        response=response,
-        context={
-            "documents": context["documents"][0],
-            "metadata": context["metadatas"][0],
-        },
-    )
+
+@app.post("/submit_feedback")
+def submit_feedback(request: FeedbackRequest) -> JSONResponse:
+    """
+    Submit feedback for a chat response.
+
+    Args:
+        request (FeedbackRequest): the feedback to submit.
+    """
+    try:
+        with SQLAlchemySession(ENGINE) as session:
+            stmt = select(Message).where(Message.message_id == request.message_id)
+            message = session.execute(stmt).scalars().one()
+            message.is_good = request.is_good
+            session.commit()
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"detail": "Feedback submitted successfully."},
+        )
+
+    except NoResultFound as e:
+        logger.warning(f"Message with id {request.message_id} not found: {e}")
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "Message id not found."},
+        )

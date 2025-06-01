@@ -4,6 +4,7 @@ from pydantic.dataclasses import dataclass
 
 import streamlit as st
 import requests
+from streamlit_feedback import streamlit_feedback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -31,12 +32,54 @@ def init_state() -> None:
     """
     init_dict = {
         "chat_history": [],
-        "response": "",
+        "context": [],
     }
 
     for key, value in init_dict.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+    if "session_id" not in st.session_state:
+        resp = requests.post(
+            url="http://medchat-backend:5050/start_session",
+            json={"user_id": 1},  # Hard code to 1 for testing purposes
+        )
+
+        if resp.status_code == 200:
+            st.session_state["session_id"] = resp.json()
+        else:
+            st.error("Failed to create a session. Check logs.")
+
+
+def parse_context(context: list[dict]) -> str:
+
+    sources = [
+        f"['{chunk['title']}'](http://localhost:9090/{chunk['filename']}#page={chunk['start_page'] + 1})"
+        for chunk in context
+        if chunk.get("title") and chunk.get("authors")
+    ]
+
+    sources = set(sources)
+
+    return sources
+
+
+def _submit_feedback(user_response: bool, emoji=None):
+
+    is_good = True if user_response["score"] == "👍" else False
+    resp = requests.post(
+        url="http://medchat-backend:5050/submit_feedback",
+        json={
+            "message_id": st.session_state["message_id"],
+            "is_good": is_good,
+        },
+    )
+    if resp.status_code != 200:
+        logger.error("Failed to submit feedback.")
+        st.error("Failed to submit feedback. Check logs.")
+        return
+    else:
+        st.toast("Feedback submitted successfully!", icon=emoji)
 
 
 def chatbot() -> None:
@@ -46,10 +89,26 @@ def chatbot() -> None:
 
     chat_window = st.container(height=500)
 
-    for message in st.session_state["chat_history"]:
+    if st.session_state["chat_history"]:
+        for message in st.session_state["chat_history"][:-1]:
+            with chat_window:
+                with st.chat_message(message.role):
+                    st.write(message.content)
+
+        # Add sources to last message
         with chat_window:
-            with st.chat_message(message.role):
-                st.write(message.content)
+            with st.chat_message(st.session_state["chat_history"][-1].role):
+                st.write(st.session_state["chat_history"][-1].content)
+                if st.session_state["context"]:
+                    sources = parse_context(st.session_state["context"])
+                    st.write("### Sources")
+                    for source in sources:
+                        st.markdown(source)
+                streamlit_feedback(
+                    feedback_type="thumbs",
+                    review_on_positive=False,
+                    on_submit=_submit_feedback,
+                )
 
     query = st.chat_input()
 
@@ -60,7 +119,7 @@ def chatbot() -> None:
                 st.write(query)
             with st.spinner("Retrieving Answers..."):
                 response = requests.post(
-                    url="http://medchat-backend:5050/chat_completion",
+                    url="http://medchat-backend:5050/chat_response",
                     json={
                         "query": query,
                         "chat_history": "\n\n".join(
@@ -69,13 +128,21 @@ def chatbot() -> None:
                                 for message in st.session_state["chat_history"]
                             ]
                         ),
+                        "session_id": st.session_state["session_id"],
                     },
+                    timeout=120,
                 )
 
                 if response.status_code == 200:
-                    answer = response.json()["messages"][-1]["content"]
+                    answer = response.json()["response"]
+                    st.session_state["context"] = response.json().get("context", [])
+                    st.session_state["message_id"] = response.json().get("message_id")
+
                 else:
-                    answer = "Sorry, I could not find an answer to that question. Try rephrasing your question or asking something else."
+                    answer = (
+                        "Sorry, I could not find an answer to that question."
+                        "Try rephrasing your question or asking something else."
+                    )
                 st.session_state["chat_history"].append(
                     ChatMessage(role="assistant", content=answer)
                 )
@@ -83,29 +150,23 @@ def chatbot() -> None:
 
 
 def title() -> None:
+    """
+    Title of the Streamlit app.
+    """
 
     st.title("MedChat")
     st.write(
-        "Welcome to MedChat! Ask me questions about medical literature and I'll do my best to help you out!"
+        (
+            "Welcome to MedChat!"
+            "Ask me questions about medical literature and I'll do my best to help you out!"
+        )
     )
 
 
-def hello_world() -> None:
-
-    button = st.button("Hello World")
-
-    if button:
-        response = requests.get(
-            url="http://medchat-backend:5050/hello_world",
-        )
-
-        if response.status_code == 200:
-            st.write(response.json())
-        else:
-            st.error(response)
-
-
 def main() -> None:
+    """
+    Main function to run the Streamlit app.
+    """
 
     init_state()
     title()

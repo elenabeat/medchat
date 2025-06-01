@@ -9,7 +9,7 @@ databases/*
 
 # pdfs
 tmp/*
-corpus/*
+sources/*
 
 # Notebooks (due to rerunning causing large diffs)
 notebooks/

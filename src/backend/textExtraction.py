@@ -6,6 +6,10 @@ import pymupdf
 
 
 class Article:
+    """
+    Class to extract and process text from a PDF article.
+    """
+
     def __init__(
         self,
         path: os.PathLike,
@@ -14,6 +18,7 @@ class Article:
         body_size: int = 10,
         note_size: int = 7.5,
     ):
+
         # Init attributes
         self.path = path
         self.title_size = title_size
@@ -24,6 +29,8 @@ class Article:
         # Init data attributes to None
         self.title = None
         self.authors = None
+        self.start_page = None
+        self.end_page = None
         self.body = None
         self.irregular_blocks = None
 
@@ -80,42 +87,52 @@ class Article:
                 parsed_blocks.append({"text": block_text, "size": avg_font_size})
         return parsed_blocks
 
-    def _parse_doc(self) -> List[Dict]:
+    def _parse_doc(self) -> Dict[int, List[Dict]]:
         """
         Parse the entire document to extract text blocks and their average font sizes.
 
         Returns:
             List[Dict]: A list of dictionaries with block text and average font size for each page.
         """
-        all_blocks = []
+        all_blocks = {}
         for page_number in range(self.num_pages):
             blocks = self._read_page_blocks(page_number)
             parsed_blocks = self._parse_blocks(blocks)
-            all_blocks.extend(parsed_blocks)
+            all_blocks[page_number] = parsed_blocks
         return all_blocks
 
     def _process_file(self) -> None:
         """
-        Process the PDF file to extract title, authors, and body text. Ignore any text before the first headline
+        Process the PDF file to extract title, authors, and body text.
+        Ignore any text before the first headline
         or after the second headline (if applicable).
         """
-        blocks = self._parse_doc()
+        page_blocks = self._parse_doc()
         start = False
         self.body = ""
         self.irregular_blocks = []
-        for block in blocks:
-            if not start and block["size"] < self.title_size:
-                continue
-            elif not start and block["size"] >= self.title_size:
-                start = True
-                self.title = block["text"]
-                continue
-            else:
+        for page, blocks in page_blocks.items():
+            for block in blocks:
+                # If no title has been found yet, check for the title
+                if not start and block["size"] < self.title_size:
+                    continue
+                if not start and block["size"] >= self.title_size:
+                    start = True
+                    self.start_page = page
+                    self.title = block["text"]
+                    continue
+
+                # If the title has been found, check next title to break
+                if block["size"] == self.title_size:
+                    self.end_page = page
+                    break
+
+                # If block is too small, skip it
                 if block["size"] <= self.note_size:
                     continue
-                elif block["size"] == self.title_size:
-                    break
-                elif block["size"] == self.author_size and not self.authors:
+
+                # Add block to appropriate attribute
+                if block["size"] == self.author_size and not self.authors:
                     self.authors = block["text"]
                 elif block["size"] == self.body_size:
                     self.body += block["text"] + "\n"
