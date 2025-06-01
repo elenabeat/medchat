@@ -69,12 +69,12 @@ class Article:
         parsed_blocks = []
         for b in blocks:
 
-            # Skip vertical blocks (height > 2x width)
+            # Skip vertical blocks (height > 5x width)
             x0, y0, x1, y1 = b["bbox"]
             width = x1 - x0
             height = y1 - y0
 
-            if height > 2 * width:
+            if height > 5 * width:
                 continue
 
             font_sizes = []
