@@ -13,6 +13,58 @@ The complete pipeline for this application is outlined briefly below and describ
 - **Optional**: [Git LFS](https://git-lfs.com/) (for downloading models from huggingface)
 
 
+## Container Architecture
+
+- 📦 = Container/Service
+- 🔌 = Ports
+- 📂 = Volume Mounts
+
+```mermaid
+flowchart LR
+    %% Containers with Ports
+    Backend(["📦 medchat-backend
+    🔌 5050:5050"])
+    Frontend(["📦 medchat-frontend
+    🔌 8501:8501"])
+    DB(["📦 medchat-db
+    🔌 5432:5432"])
+    Adminer(["📦 adminer
+    🔌 8080:8080"])
+    Blob(["📦 blob-server
+    🔌 9090:9090"])
+
+    %% Volumes
+    Sources(["📂 ./sources"])
+    LogsBackend(["📂 ./logs/backend"])
+    LogsFrontend(["📂 ./logs/frontend"])
+    Models(["📂 ./models"])
+    SrcBackend(["📂 ./src/backend"])
+    SrcFrontend(["📂 ./src/frontend"])
+    PGData(["📂 ./databases/pgdata"])
+
+    %% Dependencies
+    Backend -->|depends_on| DB
+    Frontend -->|depends_on| Backend
+    Frontend -->|serves files from| Blob
+    Adminer -->|connects to| DB
+
+    %% Volume Mounts
+    Backend --- Sources
+    Backend --- LogsBackend
+    Backend --- Models
+    Backend --- SrcBackend
+
+    Frontend --- LogsFrontend
+    Frontend --- SrcFrontend
+
+    DB --- PGData
+    Blob --- Sources
+
+
+
+```
+
+
 ## Database
 ```mermaid
 erDiagram
@@ -75,11 +127,11 @@ erDiagram
 
 ## Downloading Models from Huggingface
 
-Example for BioMistral-7b-DARE:
+Example for Qwen3-4B-AWQ:
 
-1. Find model on HuggingFace: https://huggingface.co/BioMistral/BioMistral-7B-DARE
+1. Find model on HuggingFace: https://huggingface.co/Qwen/Qwen3-4B-AWQ
 2. Run the following commands (updated with your model's url) from a the models directory:
     ```bash
     git lfs install
-    git clone https://huggingface.co/BioMistral/BioMistral-7B-DARE
+    git clone https://huggingface.co/Qwen/Qwen3-4B-AWQ
     ```
