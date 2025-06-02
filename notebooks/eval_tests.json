@@ -1,0 +1,75 @@
+{
+    "1": {
+        "question": "What is HER-2/neu?",
+        "sample_answer": "The HER-2/neu oncogene is a member of the erbB-like oncogene family, and is related to, but distinct firom, the epidermal growth factor receptor. This gene has been shown to be amplified in human breast cancer cell lines.",
+        "chunk_ids": [
+            1
+        ]
+    },
+    "2": {
+        "question": "Explain the similarities and differences between HER-2/neu and EGFR",
+        "sample_answer": "HER-2/neu is closely related to, but distinct from, the EGFR gene. HER-2/neu differs from EGFR in that it is found on band q21 of chromosome 17, as compared to band p11\u2013p13 of chromosome 7, where the EGFR gene is located. Also, the HER-2/neu gene generates a messenger RNA (mRNA) of 4.8 k, which differs from the 5.8- and 10-kb transcripts for the EGFR gen. Finally, the protein encoded by the HER-2/neu gene is 185,000 daltons, as compared to the 170,000-dalton protein encoded by the EGFR gene. Conversely, on the basis of sequence data, HER-2/neu is more closely related to the EGFR gene than to other members of the tyrosine kinase family. Like the EGFR protein, HER-2/neu has an extracellular domain, a transmembrane domain that includes two cysteine-rich repeat clusters, and an intracellular kinase domain.",
+        "chunk_ids": [
+            4
+        ]
+    },
+    "3": {
+        "question": "What is the clinical significance of HER-2/neu amplification?",
+        "sample_answer": "HER-2/neu has been shown to be amplified in human breast cancer cell lines. In the current study, alterations of the gene in 189 primary human breast cancers were investigated. HER-2/neu was found to be amplified from 2- to greater than 20-fold in 30% of the tumors. Correlation of gene amplification with several disease parameters was evaluated. Amplification of the HER-2/neu gene was a significant predictor of both overall survival and time to relapse in patients with breast cancer. It retained its significance even when adjustments were made for other known prognostic factors. Moreover, HER-2/neu amplification had greater prognostic value than most currently used prognostic factors, including hormonal-receptor status, in lymph node-positive disease.",
+        "chunk_ids": [
+            1
+        ]
+    },
+    "4": {
+        "question": "What types of cancer is HER-2/neu amplification correlated with?",
+        "sample_answer": "Human breast cancer",
+        "chunk_ids": [
+            1
+        ]
+    },
+    "5": {
+        "question": "What factors are used for breast cancer malignancy prognosis?",
+        "sample_answer": " Factors that are known to be important in the prognosis of breast malignancies in individual patients include: size of the primary tumor, stage of disease at diagnosis, hormonal receptor status, and number of axillary lymph nodes involved with disease (positive nodes).",
+        "chunk_ids": [
+            5
+        ]
+    },
+    "6": {
+        "question": "How is HER-2/neu amplification detected?",
+        "sample_answer": "DNA from individual tumors was prepared, digested with Eco RI, and subjected to Southern blot analysis with a \u00b3\u00b2P-labeled HER-2/neu-1 probe, which is known to detect a 13-kb hybridizing band in human DNA. The degree of amplification in individual cases was determined by dilution analysis, as well as soft laser densitometry scanning. To determine that the amount of DNA loaded in each lane was equivalent, all filters were washed and rehybridized with a \u00b3\u00b2P-labeled arginase gene prob. This probe identifies a 15-kb hybridizing band on Eco RI-digested human DNA and was selected as a control because it more appropriately assesses the relative amount and transfer of high molecular weight species than a probe hybridizing with low molecular weight species, which transfer more readily on Southern blotting.",
+        "chunk_ids": [
+            6
+        ]
+    },
+    "7": {
+        "question": "How is HER-2/neu amplification correlated with other predictors of breast cancer malignancies?",
+        "sample_answer": "Of 103 tumors evaluated in the initial survey, there was essentially no correlation between gene amplification and estrogen receptor status, progesterone receptor status, size of tumors, or age at diagnosis. However, there was a significant increase in incidence of HER-2/neu gene amplification in patients with more than 3 axillary lymph nodes involved with disease. A multivariate regression analysis to correlate HER-2/neu amplification with various disease parameters identified the number of positive nodes as the only significant factor, either alone or in combination, to correlate with amplification. In a second study on 100 breast cancer samples from patients with positive axillary lymph nodes, several statistically significant or nearly significant relationships were observed. In agreement with the preliminary survey, there was an association between number of involved lymph nodes and HER-2/neu amplification. In addition, the presence of gene amplification was correlated with estrogen receptor status and size of primary tumor",
+        "chunk_ids": [
+            7,
+            8,
+            9
+        ]
+    },
+    "8": {
+        "question": "Is HER-2/neu still predictive of malignancies after other prognostic factors are controlled for?",
+        "sample_answer": "To determine if amplification of HER-2/neu was independent of other known prognostic factors in predicting disease behavior, multivariate survival analyses were performed on the 86 node-positive cases. Amplification of the gene continued to be a strong prognostic factor, providing additional and independent predictive information on both time to relapse and overall survival in these patients, even when other prognostic factors were taken into account.",
+        "chunk_ids": [
+            11
+        ]
+    },
+    "9": {
+        "question": "Is HER-2/neu amplification correlated with EGFR amplification?",
+        "sample_answer": "To determine whether the phenomenon of amplification of HER-2/neu in breast cancer extended to related growth factor receptors, all filters were analyzed with the EGFR probe. Amplification of the EGFR gene was found in 4 out of 189 (2%) of the cases, and rearrangement of the EGFR gene was found in one of those four cases. The incidence of EGFR amplification and rearrangement was too small to attempt statistical correlation. Comparison of HER-2/neu amplification (53 out of 189, or 28%) with that of the EGFR gene reveals the incidence of the former to be 14 times greater than that of the latter, indicating that the phenomenon of gene amplification is not a general one for a related tyrosine kinase-specific receptor in human breast cancer. Moreover, studies examining alterations of two other tyrosine kinase-specific proto-oncogenes, abl and fes, in breast cancer did not show amplification of these genes.",
+        "chunk_ids": [
+            11,
+            12
+        ]
+    },
+    "10": {
+        "question": "What is the clinical significance of N-myc amplification?",
+        "sample_answer": "The N-myc gene is frequently amplified in human neuroblastomas and neuroblastoma cell lines. Studies on the N-myc proto-oncogene were the first to show a direct association between abnormalities in a proto-oncogene and clinical behavior of a human tumor. N-myc amplification and expression correlate both with stage of disease and overall survival in patients with neuroblastoma. Moreover, the greater the N-myc gene copy number, the worse the patient prognosis for all stages of the disease. Taken together, these data indicate a role for the N-myc gene in the pathogenesis of neuroblastoma.",
+        "chunk_ids": [
+            13
+        ]
+    }
+}

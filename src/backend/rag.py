@@ -80,7 +80,7 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
         data=message_data,
     )[0]
 
-    # Log context chunks in the database
+    # If context found log it with this message in the database
     context_data = [
         {
             "chunk_id": chunk.chunk_id,
@@ -88,17 +88,19 @@ def rag(request: ChatQuery, engine: Engine) -> ChatResponse:
         }
         for chunk in context
     ]
-    insert_data(
-        engine=engine,
-        table=MessageContext,
-        data=context_data,
-    )
+    if context_data:
+        insert_data(
+            engine=engine,
+            table=MessageContext,
+            data=context_data,
+        )
 
     return ChatResponse(
         response=response,
         message_id=message.message_id,
         context=[
             {
+                "chunk_id": chunk.chunk_id,
                 "text": chunk.text,
                 "score": score,
                 "title": chunk.article.title if chunk.article else None,
