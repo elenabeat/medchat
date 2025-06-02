@@ -2,7 +2,7 @@
 
 A retrieval-augemented generation (RAG) Q/A chatbot designed for use with medical journal articles.
 
-![alt text](image.png)
+![alt text](screenshot.png)
 
 ## Documentation
 
