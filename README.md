@@ -10,12 +10,12 @@ Detailed documentation for this project is located in the `./documentation/` fol
 
 - **`database.md`**: Describes the database schema, including tables, relationships, and fields used to store application data.
 - **`language_models.md`**: Provides details about the language models used in the pipeline, including their roles and configurations.
-- **`text_extraction.md`**: Documents the process of extracting and preprocessing text from source documents for indexing.
+- **`text_extraction.md`**: Documents the process of extracting and preprocessing text from source documents for processing.
 - **`text_processing.md`**: Covers the source text processing steps (chunking and vectorization).
 - **`rag_pipeline.md`**: Explains the retrieval-augmented generation pipeline, detailing how context is retrieved and responses are generated.
 - **`evaluation.md`**: Outlines the evaluation methodology for the RAG system, including user interaction metrics and controlled testing metrics.
 
-In addition to the markdown files, the `./notebooks/` folder contains some jupyter notebooks that go into detail on some of these processes with running code examples. The markdown folder will point you the relevant notebooks.
+In addition to the markdown files, the `./notebooks/` folder contains some jupyter notebooks that go into detail on some of these processes with running code examples. The markdown files will point you the relevant notebooks.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ In addition to the markdown files, the `./notebooks/` folder contains some jupyt
 - [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and Nvidia GPU with at least 5-6GB of VRAM.
 - [Git LFS](https://git-lfs.com/) (for downloading models from huggingface)
 
-> Note: you can try running all models on CPU if you do not have access to cuda kernels but latency may become unusable.
+>[!NOTE]: you can try running all models on CPU if you do not have access to cuda kernels but latency may become unusable.
 
 ## Getting Started
 
