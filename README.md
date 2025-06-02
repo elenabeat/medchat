@@ -24,7 +24,8 @@ In addition to the markdown files, the `./notebooks/` folder contains some jupyt
 - [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and Nvidia GPU with at least 5-6GB of VRAM.
 - [Git LFS](https://git-lfs.com/) (for downloading models from huggingface)
 
-> [!NOTE]: you can try running all models on CPU if you do not have access to cuda kernels but latency may become unusable.
+> [!NOTE]
+> You can try running all models on CPU if you do not have access to cuda kernels but latency may become unusable.
 
 ## Getting Started
 
