@@ -1,70 +1,57 @@
 # Text Extraction Pipeline
 
-The first step in processing the input file is extracting its text content. This file contains a basic overview of the process. For more details and actual examples see `notebooks/text_extraction.ipynb`.
+This file contains a basic overview of the text extraction process. For more details and actual examples see `notebooks/text_extraction.ipynb`. Note that while the code in the `src` may differ slightly from that in the notebook (to integrate with the broader application structure) the code in the notebook is functionally the same as what is powering the app.
 
-## Overview 
+## Initial Extraction with PyMuPDF
 
-One of the main challenges of extracting text from the given file was the multi-column layout. This meant that naive text extraction 
+There are several Python libraries that can extract text from a pdf including PyMuPDF, PyPDF2, Camelot, and more. After evaluating a few options and testing them on the provided document, I selected PyMuPDF for the following reasons:
 
-The primary goal is to extract structured text while preserving logical reading order and enabling future semantic analysis.
+1. **Accurate Layout Preservation**
 
+    PyMuPDF’s maintains paragraph structure and follows a natural reading order (top-down, left-to-right). This is especially important for multi-column documents like ours, since some of the other libraries I tested either scramble the text order or require hardcoded column settings, thus reducing flexibility and generalizability.
 
-Key Features
+2. **Rich Text Metadata**
 
-    Uses PyMuPDF for high-fidelity text extraction
+    PyMuPDF provides detailed styling information for each line of text, including font family, font size, and formatting (bold, italic, etc.). Currently, the pipeline only uses font size to distinguish different parts of the article (e.g. headers vs. body text), but the additional formatting info opens the door for more advanced  processing in future iterations.
 
-    Preserves natural reading flow across multi-column layouts
+3. **Performance**
 
-    Extracts metadata like font size to help identify headings and body text
+    PyMuPDF is known for its fast text extraction, which, while not a critical factor at this prototyping stage, would be important in a production environment where efficiency and scalability matter. See: https://pymupdf.readthedocs.io/en/latest/about.html#performance
 
-    Filters out non-essential elements like footers and correspondence notes
+## Parsing and Cleaning
 
-Why PyMuPDF?
+After using PyMuPDF to extract the text blocks and their styling we perform the following steps:
 
-After evaluating various libraries (e.g., PyPDF2, Camelot), PyMuPDF was selected for its:
+1. Compute the average font size of each block of text (roughly equivalent to a paragraph) rounded to the nearest 2.5. We perform this rounding because the OCR process that produced the document led to some small variation in font size (e.g., text in the same sentence with sizes 10.1, 10.05. 10.25, etc.).
+2. Iterate through the blocks until you encounter a block of font size 20 (indicating the start of the article). Save this block as the article's title.
+3. After the start is found, continue iterating and:
+    - Add first block of size 15 to the authors
+    - Add any blocks of size 10 to the body
+    - Skip any blocks of font size <= 7.5
+    - Skip any "vertical" blocks (height > 5 * width) as these contain some margin comments.
+    - Add any blocks of different size to a list of irregular blocks
+4. Stop when the end of the document is reached OR when you encounter another block of size 20 (indicating the start of a new article)
+5. Clean up the body text by removing line breaks that interrupt sentences, which are the result of a sentence stretching across columns
 
-    Accurate Layout Handling: Maintains paragraph structure and reading order (top-to-bottom, left-to-right) even in multi-column formats.
+## Discussion
 
-    Rich Text Metadata: Captures styling info (e.g., font size), which is useful for distinguishing between headers and body text.
+Overall, I am satisfied with the text extraction pipeline given the limitations in time and scope. The current process performs very well on the given file and should generalize well to other files with consistent styling.
 
-    Performance: Offers fast and efficient extraction—beneficial for scaling.
+### Benefits
 
-Process Walkthrough
+- **Clean Text**: PyMuPDF extracts text cleanly, with minimal missing/misidentified characters.
+- **Accurrate Layout**: PyMuPDF extracts text in the correct reading order (top-down, left-right) without the user hardcoding the documents format (e.g., number of columns or rows).
+- **Classify Text from Styling**: use the text styling (font size and orientation) to classify data as article, author, body, or extraneous. 
+- **Performant**: article processing time takes approximately 0.03 seconds which is about 0.005 seconds per page.
+- **Interpretable & Customizable**: unlike black-box 3rd party services, we can control each step of the process
 
-    Setup
+### Limitations
 
-        Import required libraries (pymupdf, re, time, etc.)
+- **Format Fragility**: This approach assumes consistent formatting across articles. While articles in the same issue of a journal likely have the same styling, different journals may use different styles or journals may change their styling over time.
+- **Brittle Text Classification**: we only use font size to classify each block of text, ignoring any semantic understanding. This may lead to issues if the formatting is not consistent within the article, for instance if a Figure label is also Size 10.
 
-        Load the target PDF file, skipping the cover page if needed.
-
-    Initial Extraction
-
-        Use PyMuPDF’s .get_text("text") to extract plain text.
-
-        Review the output to understand line breaks and non-content noise.
-
-    Structured Extraction
-
-        Switch to .get_text("dict") to extract words along with positional and styling information.
-
-        Filter and sort content using bounding box coordinates and font size.
-
-    Cleaning and Organization
-
-        Remove footer text (e.g., journal info, author correspondence).
-
-        Group lines into paragraphs using their vertical position and indentation heuristics.
-
-        Identify headers based on relative font sizes.
-
-    Result Preview
-
-        Print or preview the cleaned and structured paragraphs.
-
-    Discussion
-
-        Pros: Clean extraction, respects layout, useful metadata.
-
-        Cons: Some false positives, no semantic tagging yet.
-
-        Future Work: Use additional metadata (e.g., bold, italic), implement section labeling, and integrate NLP for better content segmentation.
+### Potential Future Improvements 
+- **Autodetect Font-Sizes to Adapt to Different Styles**: dynamically determine the different font size cutoffs for body, authors, or titles
+- **Incorporate Semantic Understanding to Text Classification**: for example, author block should not only be of the right size but must contain one or more person names, validated using NER techniques.
+- **Track Section Headers or other Structure**: for long articles with mutliple sections (Background, Methods, etc.) capture the sections so we can better contextualize chunks in down stream processes.
+- **Parellelization**: the intial processing of each page individually could be parallelized once speed/scalability becomes a concern.
